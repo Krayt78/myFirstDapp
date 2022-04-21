@@ -6,7 +6,7 @@ import "./App.css";
 import Proposal from './Proposal.js'
 
 class App extends Component {
-  state = { web3: null, isAdmin: false, isVoter:false, accounts: null, connectedAccount: 0, workflowStatus:"", contract: null, proposals:null};
+  state = { web3: null, isAdmin: false, isVoter:false, accounts: null, connectedAccount: 0, workflowStatus:"", contract: null, proposals:null, winner:null};
 
   componentWillMount = async () => {
     try {
@@ -27,6 +27,7 @@ class App extends Component {
 
       const owner = await instance.methods.owner().call();
       let isAdmin = accounts[0] === owner;
+      console.log(owner);
 
       let workflowStatusTemp = await instance.methods.workflowStatus().call({from: accounts[0]});
       let workflowStatus = this.convertWorkflowStatus(workflowStatusTemp);
@@ -35,14 +36,6 @@ class App extends Component {
         fromBlock: 0,                  //Number || "earliest" || "pending" || "latest"
         toBlock: 'latest'
       };
-
-      let proposals = await instance.getPastEvents('ProposalRegistered', options);
-
-      console.table(proposals);
-
-      proposals.forEach(element => {
-        console.log(element.returnValues[0]);
-      });
 
       let isVoter = false;
 
@@ -61,7 +54,7 @@ class App extends Component {
 
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, isAdmin, isVoter, accounts, connectedAccount: accounts[0], workflowStatus, contract: instance, proposals}, this.runInit);
+      this.setState({ web3, isAdmin, isVoter, accounts, connectedAccount: accounts[0], workflowStatus, contract: instance}, this.runInit);
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -144,6 +137,7 @@ class App extends Component {
     switch(+workflowStatusTemp){
         case 0: 
           await contract.methods.startProposalsRegistering().send({from: accounts[0]});
+          
         break;
   
         case 1: 
@@ -160,6 +154,10 @@ class App extends Component {
   
         case 4: 
           await contract.methods.tallyVotes().send({from: accounts[0]});
+          let winningproposal = await contract.methods.winningProposalID().call({from: accounts[0]}); 
+          let proposal = await this.getProposalWithParam(winningproposal); 
+          let proposalToString = 'Proposal ID : '+winningproposal+" / Description : "+ proposal[0]+ " / Vote Count : "+ proposal[1];
+          this.setState({winner:proposalToString});
         break;
   
         case 5: 
@@ -171,6 +169,11 @@ class App extends Component {
         break;
 
     }
+
+          workflowStatusTemp = await contract.methods.workflowStatus().call({from: accounts[0]});
+          workflowStatusTemp = this.convertWorkflowStatus(workflowStatusTemp);
+          console.log(workflowStatusTemp);
+          this.setState({workflowStatus:workflowStatusTemp});
   };
 
   getVoter = async() => {
@@ -180,7 +183,8 @@ class App extends Component {
     if(address){
       try{
         let voter = await contract.methods.getVoter(address).call({from: accounts[0]});
-        console.log(voter);
+        console.log('Voter Address : '+address+" / isRegistered : "+ voter[0]+ " / hasVoted : "+ voter[1]+" / Voted Proposal ID : "+ voter[2]);
+        window.alert('Voter Address : '+address+" / isRegistered : "+ voter[0]+ " / hasVoted : "+ voter[1]+" / Voted Proposal ID : "+ voter[2])
       }
       catch(error){
         const stringError = error.message;
@@ -193,6 +197,17 @@ class App extends Component {
     }
   }
 
+  setVote = async() => {
+    const { accounts, contract } = this.state;
+    let id=document.getElementById("voteForID").value;
+
+    if(id){
+      await contract.methods.setVote(id).send({from: accounts[0]});
+      console.log("voted");
+      this.refreshProposalList();
+    }
+  }
+
   addVoter = async() => {
     const { accounts, contract } = this.state;
     let address=document.getElementById("addVoterAddress").value;
@@ -200,8 +215,10 @@ class App extends Component {
     if(address){
       await contract.methods.addVoter(address).send({from: accounts[0]});
       console.log("added voter");
-      let voter = await contract.methods.getVoter(address).call({from: accounts[0]});
-      console.log(voter);
+
+      if(address===accounts[0]){
+        this.setState({isVoter:true});
+      }
     }
   }
 
@@ -224,6 +241,8 @@ class App extends Component {
         let proposal = await contract.methods.getOneProposal(proposalID).call({from: accounts[0]});
         console.log(proposal);
         window.alert('Proposal ID : '+proposalID+" / Description : "+ proposal[0]+ " / Vote Count : "+ proposal[1])
+
+        return proposal;
       }
       catch(error){
         const stringError = error.message;
@@ -235,7 +254,52 @@ class App extends Component {
     }
   }
 
+  getProposalWithParam = async(proposalID) => {
+    const { accounts, contract } = this.state;
+    if(proposalID){
+      try{
+        let proposal = await contract.methods.getOneProposal(proposalID).call({from: accounts[0]});
+        console.log(proposal);
+
+        return proposal;
+      }
+      catch(error){
+        const stringError = error.message;
   
+        if(stringError.indexOf("You're not a voter") !== -1){
+        }
+
+      }
+    }
+  }
+
+  refreshProposalList = async() => {
+    const { contract, proposals } = this.state;
+    
+    let options = {
+      fromBlock: 0,                  //Number || "earliest" || "pending" || "latest"
+      toBlock: 'latest'
+    };
+
+    let proposalEvents = await contract.getPastEvents('ProposalRegistered', options);
+    console.table(proposalEvents);
+
+    let proposalArray = [];
+
+    for (let i = 0; i < proposalEvents.length; i++) {
+      let proposalID = proposalEvents[i].returnValues[0];
+      let proposal = await this.getProposalWithParam(proposalID);
+      const arrayElement = [proposalID,proposal[0],proposal[1]];
+      proposalArray.push(arrayElement);
+      console.table(arrayElement);
+    }
+    proposalEvents.forEach(async element => {
+      
+    });
+    console.table(proposalArray);
+
+    this.setState({proposals:proposalArray});
+  }
 
   
  
@@ -251,8 +315,7 @@ class App extends Component {
       </div>
     );
 
-    const isAdminRender = (
-      <div className="App" >
+    const addVoterRender = (
         <div className="AddVoter" >
           <p>Hi Admin, You can AddVoter:          
             <br />
@@ -261,34 +324,43 @@ class App extends Component {
             <button onClick={this.addVoter}>Add Voter</button>
           </p>
         </div>
-
-        <div className="GetVoter" >
-          <p>Hi Admin, You can GetVoter:          
+    );
+    const getVoterRender = (
+    <div className="GetVoter" >
+          <p>Get a Voter:          
             <br />
             <input type="text" id="getVoterAddress" placeholder="Voter Address"/>
             <br />
             <button onClick={this.getVoter}>Get Voter</button>
           </p>
         </div>
-
-        <br></br>
-      </div>
     );
 
     const testComponent = (
       <div className="Proposal" >
-          
-          <Proposal id={0} description={"test"}></Proposal>
+          <Proposal id={0} description={"test"} voterCount={"0"}></Proposal>
       </div>
     );
-    const isVoterRender = (
-      <div className="IsVoter" >
+
+    const setVoteRender =(
+      <div className="SetVote" >
+            <p>Voter for proposal number:
+            <br />
+            <input type="text" id="voteForID" placeholder="Proposal ID"/>
+            <br />
+            <button onClick={this.setVote}>Vote</button>    
+            </p>
+          </div>
+    );
+
+    const isVoterRenderHello = (
         <div className="isAVoter" >
           <p>You are a Voter !     
           </p>
         </div>
-          
+    );
 
+    const addProposalRender = (
           <div className="AddProposal" >
             <p>Add a Proposal
             <br />
@@ -297,7 +369,9 @@ class App extends Component {
             <button onClick={this.addProposal}>AddProposal</button>    
             </p>
           </div>
+    );
 
+    const getProposalRender = (
           <div className="GetProposal" >
               <p>Get a proposal 
               <br />
@@ -306,16 +380,20 @@ class App extends Component {
               <button onClick={this.getProposal}>GetProposal</button>   
               </p>
           </div>
-
-      </div>
     );
 
     const testMap = (
-      <table>
-          {this.state.proposals.map((proposal) => (
-            <tr><td>{0}</td><td>{1}</td></tr>
+      <div className="ProposalMap" >
+          {this.state.proposals && this.state.proposals.map((proposal) => (
+            <Proposal id={proposal[0]} description={proposal[1]} voterCount={proposal[2]}></Proposal>
           ))}
-        </table>
+      </div>
+    );
+
+    const refreshButton = (
+      <div className="Refresh" >
+            <button onClick={this.refreshProposalList}>Refresh Proposal List</button>    
+      </div>
     );
 
     const workflowButton = (
@@ -324,11 +402,17 @@ class App extends Component {
       </div>
     );
 
+    const showwinner = (
+      <div className="showwinner" >
+              <h2>Winner is : {this.state.winner}</h2>  
+      </div>
+    );
+
     return(
       <div className="App" >
-          <div className="Header" style={{display: 'flex'}}>
-                <h2 className="Title">Voting System</h2>
-                <h2 className="MetamaskAccount"> Metamask account : {this.state.connectedAccount}</h2>
+          <div className="Top">
+                <p className="Title">Voting System</p>
+                <p className="MetamaskAccount"> Metamask account : {this.state.connectedAccount}</p>
           </div>
 
           <div className="WorkflowStatus" >
@@ -337,13 +421,22 @@ class App extends Component {
             </p>
           </div>
 
-          {workflowButton}
-
-        
-
         {this.state.isAdmin ? isAdminRenderHello : <div></div>}
-        {this.state.isVoter ? isVoterRender : <div></div>}
-        {this.state.isAdmin ? isAdminRender : <div></div>}
+        {this.state.isVoter ? isVoterRenderHello : <div></div>}
+        {this.state.isAdmin ? workflowButton : <div></div>}
+
+        {this.state.isAdmin && this.state.workflowStatus === "RegisteringVoters" ? addVoterRender : <div></div>}
+        {this.state.isVoter && this.state.workflowStatus === "ProposalsRegistrationStarted" ? addProposalRender : <div></div>}
+        {this.state.isVoter && this.state.workflowStatus === "VotingSessionStarted"  ? setVoteRender : <div></div>}
+
+        {this.state.isVoter ? getProposalRender : <div></div>}
+        {this.state.isVoter ? getVoterRender : <div></div>}
+        {this.state.isVoter ? refreshButton : <div></div>}
+        {this.state.isVoter ? testMap : <div></div>}
+
+        {this.state.workflowStatus === "VotesTallied"  ? showwinner : <div></div>}
+
+        {this.proposals}
 
       </div>
 

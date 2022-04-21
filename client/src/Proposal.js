@@ -6,9 +6,8 @@ export default class Proposal extends Component {
   render() {
     return(
       <div className="proposal">
-        <p>{this.props.id}</p>
-        <p>{this.props.description}</p>
-    </div>
+        <p>Propoal ID: {this.props.id} Description: {this.props.description} Vote Count: {this.props.voterCount} </p>
+      </div>
     );
   }
 }
