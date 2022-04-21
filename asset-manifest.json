@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/myFirstDapp/static/css/main.b100e6da.chunk.css",
-    "main.js": "/myFirstDapp/static/js/main.278430d6.chunk.js",
-    "main.js.map": "/myFirstDapp/static/js/main.278430d6.chunk.js.map",
+    "main.js": "/myFirstDapp/static/js/main.2c3472ad.chunk.js",
+    "main.js.map": "/myFirstDapp/static/js/main.2c3472ad.chunk.js.map",
     "runtime-main.js": "/myFirstDapp/static/js/runtime-main.80cd8a70.js",
     "runtime-main.js.map": "/myFirstDapp/static/js/runtime-main.80cd8a70.js.map",
     "static/css/2.429e79c4.chunk.css": "/myFirstDapp/static/css/2.429e79c4.chunk.css",
-    "static/js/2.c3e986f7.chunk.js": "/myFirstDapp/static/js/2.c3e986f7.chunk.js",
-    "static/js/2.c3e986f7.chunk.js.map": "/myFirstDapp/static/js/2.c3e986f7.chunk.js.map",
+    "static/js/2.328dfd77.chunk.js": "/myFirstDapp/static/js/2.328dfd77.chunk.js",
+    "static/js/2.328dfd77.chunk.js.map": "/myFirstDapp/static/js/2.328dfd77.chunk.js.map",
     "index.html": "/myFirstDapp/index.html",
-    "precache-manifest.51c9b0efdcece64cf9205fbef74e8df0.js": "/myFirstDapp/precache-manifest.51c9b0efdcece64cf9205fbef74e8df0.js",
+    "precache-manifest.51770f33faa0213fcf6e0de94c751ee1.js": "/myFirstDapp/precache-manifest.51770f33faa0213fcf6e0de94c751ee1.js",
     "service-worker.js": "/myFirstDapp/service-worker.js",
     "static/css/2.429e79c4.chunk.css.map": "/myFirstDapp/static/css/2.429e79c4.chunk.css.map",
     "static/css/main.b100e6da.chunk.css.map": "/myFirstDapp/static/css/main.b100e6da.chunk.css.map"
@@ -17,8 +17,8 @@
   "entrypoints": [
     "static/js/runtime-main.80cd8a70.js",
     "static/css/2.429e79c4.chunk.css",
-    "static/js/2.c3e986f7.chunk.js",
+    "static/js/2.328dfd77.chunk.js",
     "static/css/main.b100e6da.chunk.css",
-    "static/js/main.278430d6.chunk.js"
+    "static/js/main.2c3472ad.chunk.js"
   ]
 }
