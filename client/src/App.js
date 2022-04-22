@@ -32,11 +32,6 @@ class App extends Component {
       let workflowStatusTemp = await instance.methods.workflowStatus().call({from: accounts[0]});
       let workflowStatus = this.convertWorkflowStatus(workflowStatusTemp);
 
-      let options = {
-        fromBlock: 0,                  //Number || "earliest" || "pending" || "latest"
-        toBlock: 'latest'
-      };
-
       let isVoter = false;
 
       try{
@@ -344,7 +339,7 @@ class App extends Component {
 
     const setVoteRender =(
       <div className="SetVote" >
-            <p>Voter for proposal number:
+            <p>Vote for proposal number:
             <br />
             <input type="text" id="voteForID" placeholder="Proposal ID"/>
             <br />

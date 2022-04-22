@@ -11,6 +11,8 @@ module.exports = {
      network_id: "*",       // Any network (default: none)
     },
 
+    
+
     provider: function(){ 
        return new HDWalletProvider(
          '${process.env.MNEMONIC}', 
@@ -21,6 +23,10 @@ module.exports = {
        provider : function() {return new HDWalletProvider({mnemonic:{phrase:`${process.env.MNEMONIC}`},providerOrUrl:`https://ropsten.infura.io/v3/${process.env.INFURA_ID}`})},
        network_id:3
      },
+     rinkeby:{
+       provider : function() {return new HDWalletProvider({mnemonic:{phrase:`${process.env.MNEMONIC}`},providerOrUrl:`https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`})},
+       network_id:4
+    },
      kovan:{
        provider : function() {return new HDWalletProvider({mnemonic:{phrase:`${process.env.MNEMONIC}`},providerOrUrl:`https://kovan.infura.io/v3/${process.env.INFURA_ID}`})},
        network_id:42
